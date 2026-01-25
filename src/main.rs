@@ -1,5 +1,5 @@
 use ray_tracer_tdd::canvas::Canvas;
-use ray_tracer_tdd::primitives;
+use nalgebra::Vector4;
 
 fn main() {
     let mut canvas = Canvas::new(50, 50);
@@ -9,7 +9,7 @@ fn main() {
             let r = x as f64 / 50.0;
             let g = y as f64 / 50.0;
             let b = 0.2;
-            let color = primitives::color(r, g, b);
+            let color = Vector4::new(r, g, b, 0.0);
             canvas.write_pixel(x, y, color);
         }
     }

@@ -20,3 +20,7 @@ harness = false
 [[test]]
 name = "matrices_tests"
 harness = false
+
+[[test]]
+name = "transformations_tests"
+harness = false

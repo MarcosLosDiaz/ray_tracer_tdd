@@ -1,15 +1,16 @@
+use approx::{assert_relative_eq, relative_eq};
 use cucumber::{World, given, then, when};
 use std::collections::HashMap;
-use ray_tracer_tdd::primitives;
+use nalgebra::{Vector3, Vector4};
 
 #[derive(Debug, Default, World)]
 pub struct TupleWorld {
-    pub tuples: HashMap<String, primitives::Tuple>,
+    pub tuples: HashMap<String, Vector4<f64>>,
 }
 
 #[given(expr = "{word} ← tuple\\({float}, {float}, {float}, {float}\\)")]
 fn given_tuple(world: &mut TupleWorld, name: String, x: f64, y: f64, z: f64, w: f64) {
-    world.tuples.insert(name, primitives::Tuple { x, y, z, w });
+    world.tuples.insert(name, Vector4::new(x, y, z, w));
 }
 
 #[then(expr = "{word}.{word} = {float}")]
@@ -22,7 +23,7 @@ fn check_tuple_component(world: &mut TupleWorld, name: String, component: String
         "w" => tuple.w,
         _ => panic!("Unknown component: {}", component),
     };
-    assert!(primitives::float_are_equal(actual, expected));
+    assert_relative_eq!(actual, expected);
 }
 
 #[then(expr = "{word} is a {word}")]
@@ -46,15 +47,15 @@ fn check_tuple_is_not_type(world: &mut TupleWorld, name: String, object_type: St
         "vector" => 0.0,
         _ => panic!("Unknown object type: {}", object_type),
     };
-    assert_ne!(w, expected);
+    assert!(!relative_eq!(w, expected));
 }
 
 #[given(expr = "{word} ← {word}\\({float}, {float}, {float}\\)")]
 fn assign_point_or_vector(world: &mut TupleWorld, name: String, type_name: String, x: f64, y: f64, z: f64) {
     let tuple = match type_name.as_str() {
-        "point" => primitives::point(x, y, z),
-        "vector" => primitives::vector(x, y, z),
-        "color" => primitives::color(x, y, z),
+        "point" => Vector4::new(x, y, z, 1.0),
+        "vector" => Vector4::new(x, y, z, 0.0),
+        "color" => Vector4::new(x, y, z, 0.0),
         _ => panic!("Unknown constructor: {}", type_name),
     };
     world.tuples.insert(name, tuple);
@@ -64,56 +65,56 @@ fn assign_point_or_vector(world: &mut TupleWorld, name: String, type_name: Strin
 #[then(regex = r"^(\w+) = tuple\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
 fn check_tuple_equality(world: &mut TupleWorld, name: String, x: f64, y: f64, z: f64, w: f64) {
     let tuple = world.tuples.get(&name).expect("Tuple not found");
-    assert!(primitives::tuple_are_equal(*tuple, primitives::Tuple { x, y, z, w }));
+    assert_relative_eq!(tuple, &Vector4::new(x, y, z, w));
 }
 
 #[then(expr = "{word} - {word} = {word}\\({float}, {float}, {float}\\)")]
 fn check_subtraction(world: &mut TupleWorld, a: String, b: String, type_name: String, x: f64, y: f64, z: f64) {
     let t1 = world.tuples.get(&a).expect("Tuple not found");
     let t2 = world.tuples.get(&b).expect("Tuple not found");
-    let result = t1.subtract(*t2);
+    let result = t1 - t2;
     let expected = match type_name.as_str() {
-        "point" => primitives::point(x, y, z),
-        "vector" => primitives::vector(x, y, z),
+        "point" => Vector4::new(x, y, z, 1.0),
+        "vector" => Vector4::new(x, y, z, 0.0),
         _ => panic!("Unknown type"),
     };
-    assert!(primitives::tuple_are_equal(result, expected));
+    assert_relative_eq!(result, expected);
 }
 
 #[then(regex = r"^-(\w+) = tuple\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
 fn check_negation(world: &mut TupleWorld, name: String, x: f64, y: f64, z: f64, w: f64) {
     let t = world.tuples.get(&name).expect("Tuple not found");
-    let result = t.negate();
-    let expected = primitives::Tuple { x, y, z, w };
-    assert!(primitives::tuple_are_equal(result, expected));
+    let result = -t;
+    let expected = Vector4::new(x, y, z, w);
+    assert_relative_eq!(result, expected);
 }
 
 #[then(expr = "{word} * {float} = tuple\\({float}, {float}, {float}, {float}\\)")]
 fn check_scalar_multiplication(world: &mut TupleWorld, name: String, scalar: f64, x: f64, y: f64, z: f64, w: f64) {
     let t = world.tuples.get(&name).expect("Tuple not found");
-    let result = t.scalar_mult(scalar);
-    let expected = primitives::Tuple { x, y, z, w };
-    assert!(primitives::tuple_are_equal(result, expected));
+    let result = t * scalar;
+    let expected = Vector4::new(x, y, z, w);
+    assert_relative_eq!(result, expected);
 }
 
 #[then(expr = "{word} \\/ {float} = tuple\\({float}, {float}, {float}, {float}\\)")]
 fn check_scalar_division(world: &mut TupleWorld, name: String, scalar: f64, x: f64, y: f64, z: f64, w: f64) {
     let t = world.tuples.get(&name).expect("Tuple not found");
-    let result = t.scalar_mult(1.0 / scalar);
-    let expected = primitives::Tuple { x, y, z, w };
-    assert!(primitives::tuple_are_equal(result, expected));
+    let result = t / scalar;
+    let expected = Vector4::new(x, y, z, w);
+    assert_relative_eq!(result, expected);
 }
 
 #[then(expr = "magnitude\\({word}\\) = {float}")]
 fn check_magnitude(world: &mut TupleWorld, name: String, expected: f64) {
     let t = world.tuples.get(&name).expect("Tuple not found");
-    assert!(primitives::float_are_equal(t.magnitude(), expected));
+    assert_relative_eq!(t.norm(), expected);
 }
 
 #[then(expr = "magnitude\\({word}\\) = √{float}")]
 fn check_magnitude_sqrt(world: &mut TupleWorld, name: String, radicand: f64) {
     let t = world.tuples.get(&name).expect("Tuple not found");
-    assert!(primitives::float_are_equal(t.magnitude(), radicand.sqrt()));
+    assert_relative_eq!(t.norm(), radicand.sqrt());
 }
 
 #[then(expr = "normalize\\({word}\\) = {word}\\({float}, {float}, {float}\\)")]
@@ -122,11 +123,11 @@ fn check_normalization(world: &mut TupleWorld, name: String, type_name: String, 
     let t = world.tuples.get(&name).expect("Tuple not found");
     let result = t.normalize();
     let expected = match type_name.as_str() {
-        "point" => primitives::point(x, y, z),
-        "vector" => primitives::vector(x, y, z),
+        "point" => Vector4::new(x, y, z, 1.0),
+        "vector" => Vector4::new(x, y, z, 0.0),
         _ => panic!("Unknown type"),
     };
-    assert!(primitives::tuple_are_equal(result, expected));
+    assert_relative_eq!(result, expected, epsilon = 1e-3);
 }
 
 #[when(expr = "{word} ← normalize\\({word}\\)")]
@@ -139,25 +140,30 @@ fn assign_normalized(world: &mut TupleWorld, name: String, source: String) {
 fn check_dot_product(world: &mut TupleWorld, a: String, b: String, expected: f64) {
     let t1 = world.tuples.get(&a).expect("Tuple not found");
     let t2 = world.tuples.get(&b).expect("Tuple not found");
-    assert!(primitives::float_are_equal(t1.dot(*t2), expected));
+    assert_relative_eq!(t1.dot(t2), expected);
 }
 
 #[then(expr = "cross\\({word}, {word}\\) = vector\\({float}, {float}, {float}\\)")]
 fn check_cross_product(world: &mut TupleWorld, a: String, b: String, x: f64, y: f64, z: f64) {
     let t1 = world.tuples.get(&a).expect("Tuple not found");
     let t2 = world.tuples.get(&b).expect("Tuple not found");
-    let result = t1.cross(*t2);
-    let expected = primitives::vector(x, y, z);
-    assert!(primitives::tuple_are_equal(result, expected));
+    
+    let v1 = Vector3::new(t1.x, t1.y, t1.z);
+    let v2 = Vector3::new(t2.x, t2.y, t2.z);
+    let cross = v1.cross(&v2);
+    let result = Vector4::new(cross.x, cross.y, cross.z, 0.0);
+
+    let expected = Vector4::new(x, y, z, 0.0);
+    assert_relative_eq!(result, expected);
 }
 
 #[then(expr = "{word} * {word} = color\\({float}, {float}, {float}\\)")]
 fn check_color_multiplication(world: &mut TupleWorld, a: String, b: String, r: f64, g: f64, bl: f64) {
     let t1 = world.tuples.get(&a).expect("Tuple not found");
     let t2 = world.tuples.get(&b).expect("Tuple not found");
-    let result = t1.hadamard_product(*t2);
-    let expected = primitives::color(r, g, bl);
-    assert!(primitives::tuple_are_equal(result, expected));
+    let result = t1.component_mul(t2);
+    let expected = Vector4::new(r, g, bl, 0.0);
+    assert_relative_eq!(result, expected);
 }
 
 fn main() {

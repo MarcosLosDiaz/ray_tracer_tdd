@@ -1,13 +1,13 @@
 use cucumber::{World, given, when, then};
 use ray_tracer_tdd::canvas::Canvas;
-use ray_tracer_tdd::primitives::{self, Tuple};
 use std::collections::HashMap;
+use nalgebra::Vector4;
 
 #[derive(Debug, Default, World)]
 pub struct CanvasWorld {
     canvas: Option<Canvas>,
     ppm: String,
-    colors: HashMap<String, Tuple>,
+    colors: HashMap<String, Vector4<f64>>,
 }
 
 #[given(expr = "c ← canvas\\({int}, {int}\\)")]
@@ -17,7 +17,7 @@ fn given_canvas(world: &mut CanvasWorld, width: usize, height: usize) {
 
 #[given(expr = "{word} ← color\\({float}, {float}, {float}\\)")]
 fn given_color(world: &mut CanvasWorld, name: String, r: f64, g: f64, b: f64) {
-    world.colors.insert(name, primitives::color(r, g, b));
+    world.colors.insert(name, Vector4::new(r, g, b, 0.0));
 }
 
 #[when(expr = "ppm ← canvas_to_ppm\\(c\\)")]

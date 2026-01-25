@@ -1,20 +1,20 @@
-use crate::primitives::{Tuple, color};
+use nalgebra::Vector4;
 
 #[derive(Debug)]
 pub struct Canvas {
     pub width: usize,
     pub height: usize,
-    pub pixels: Box<[Tuple]>,
+    pub pixels: Box<[Vector4<f64>]>,
 }
 
 impl Canvas {
     pub fn new(width: usize, height: usize) -> Self {
-        let black = color(0.0, 0.0, 0.0);
+        let black = Vector4::new(0.0, 0.0, 0.0, 0.0);
         let pixels = vec![black; width * height].into_boxed_slice();
         Canvas { width, height, pixels }
     }
 
-    pub fn write_pixel(&mut self, x: usize, y: usize, color: Tuple) {
+    pub fn write_pixel(&mut self, x: usize, y: usize, color: Vector4<f64>) {
         if x < self.width && y < self.height {
             let index = y * self.width + x;
             self.pixels[index] = color;

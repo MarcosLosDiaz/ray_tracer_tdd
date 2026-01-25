@@ -1,7 +1,6 @@
-use approx::assert_relative_eq;
+use approx::{assert_relative_eq, relative_eq};
 use cucumber::{World, given, then};
 use std::collections::HashMap;
-use ray_tracer_tdd::primitives;
 use nalgebra::DMatrix;
 
 #[derive(Debug, Default, World)]
@@ -32,7 +31,7 @@ fn given_matrix(world: &mut MatrixWorld, name: String, step: &cucumber::gherkin:
 fn check_matrix_value(world: &mut MatrixWorld, name: String, row: usize, col: usize, expected: f64) {
     let matrix = world.matrices.get(&name).expect("Matrix not found");
     let actual = matrix[(row, col)];
-    assert!(primitives::float_are_equal(actual, expected));
+    assert_relative_eq!(actual, expected);
 }
 
 #[then(regex = r"^(\w+) = (\w+)$")]
@@ -114,19 +113,19 @@ fn check_matrix_transpose(world: &mut MatrixWorld, matrix_name: String, step: &c
 fn check_matrix_determinant(world: &mut MatrixWorld, matrix_name: String, expected_determinant: f64) {
     let matrix = world.matrices.get(&matrix_name).expect("Matrix not found");
     let determinant = matrix.determinant();
-    assert!(primitives::float_are_equal(determinant, expected_determinant));
+    assert_relative_eq!(determinant, expected_determinant);
 }
 
 #[then(expr = "{word} is invertible")]
 fn check_matrix_invertible(world: &mut MatrixWorld, matrix_name: String) {
     let matrix = world.matrices.get(&matrix_name).expect("Matrix not found");
-    assert!(!primitives::float_are_equal(matrix.determinant(), 0.0));
+    assert!(!relative_eq!(matrix.determinant(), 0.0));
 }
 
 #[then(expr = "{word} is not invertible")]
 fn check_matrix_not_invertible(world: &mut MatrixWorld, matrix_name: String) {
     let matrix = world.matrices.get(&matrix_name).expect("Matrix not found");
-    assert!(primitives::float_are_equal(matrix.determinant(), 0.0));
+    assert_relative_eq!(matrix.determinant(), 0.0);
 }
 
 #[then(expr = "inverse\\({word}\\) is the following 4x4 matrix:")]
