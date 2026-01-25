@@ -1,0 +1,22 @@
+[package]
+name = "ray_tracer_tdd"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cucumber = "0.22.1"
+futures = "0.3"
+nalgebra = "0.34.1"
+approx = "0.5"
+
+[[test]]
+name = "tuples_tests"
+harness = false
+
+[[test]]
+name = "canvas_tests"
+harness = false
+
+[[test]]
+name = "matrices_tests"
+harness = false
