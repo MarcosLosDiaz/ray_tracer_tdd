@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../learn_rust"
+		}
+	],
+	"settings": {
+		"chat.tools.terminal.autoApprove": {
+			"cargo build": true
+		}
+	}
+}

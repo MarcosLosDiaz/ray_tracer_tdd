@@ -49,4 +49,20 @@ impl Canvas {
     pub fn save_to_file(&self, filename: &str) -> std::io::Result<()> {
         std::fs::write(filename, self.to_ppm())
     }
+
+    pub fn save_to_png(&self, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let mut imgbuf = image::RgbImage::new(self.width as u32, self.height as u32);
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let index = y * self.width + x;
+                let pixel = self.pixels[index];
+                let r = (pixel.x * 255.0).round().clamp(0.0, 255.0) as u8;
+                let g = (pixel.y * 255.0).round().clamp(0.0, 255.0) as u8;
+                let b = (pixel.z * 255.0).round().clamp(0.0, 255.0) as u8;
+                imgbuf.put_pixel(x as u32, y as u32, image::Rgb([r, g, b]));
+            }
+        }
+        imgbuf.save(filename)?;
+        Ok(())
+    }
 }

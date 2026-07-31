@@ -8,6 +8,7 @@ cucumber = "0.22.1"
 futures = "0.3"
 nalgebra = "0.34.1"
 approx = "0.5"
+image = "0.25"
 
 [[test]]
 name = "tuples_tests"
@@ -23,4 +24,16 @@ harness = false
 
 [[test]]
 name = "transformations_tests"
+harness = false
+
+[[test]]
+name = "rays_tests"
+harness = false
+
+[[test]]
+name = "spheres_tests"
+harness = false
+
+[[test]]
+name = "intersections_tests"
 harness = false

@@ -89,7 +89,7 @@ fn check_transform_point_regex(
     let matrix = world.matrices.get(&matrix_name).expect("Matrix not found");
     let point = world.tuples.get(&point_name).expect("Point not found");
 
-    let result = matrix.data * point;
+    let result = matrix * point;
     let expected = SVector::<f64, 4>::new(x, y, z, 1.0);
 
     assert_relative_eq!(result, expected, epsilon = 1e-5);
@@ -107,7 +107,7 @@ fn check_transform_vector(
     let matrix = world.matrices.get(&matrix_name).expect("Matrix not found");
     let vector = world.tuples.get(&vector_name).expect("Vector not found");
 
-    let result = matrix.data * vector;
+    let result = matrix * vector;
     let expected = SVector::<f64, 4>::new(x, y, z, 0.0);
 
     assert_relative_eq!(result, expected, epsilon = 1e-5);
@@ -127,7 +127,7 @@ fn check_transform_vector_equality(
         .get(&expected_name)
         .expect("Expected vector not found");
 
-    let result = matrix.data * vector;
+    let result = matrix * vector;
 
     assert_relative_eq!(result, expected);
 }
@@ -135,8 +135,8 @@ fn check_transform_vector_equality(
 #[given(expr = "{word} ← inverse\\({word}\\)")]
 fn given_inverse(world: &mut TransformationWorld, inv_name: String, matrix_name: String) {
     let matrix = world.matrices.get(&matrix_name).expect("Matrix not found");
-    let inv_data = matrix.data.try_inverse().expect("Matrix is not invertible");
-    world.matrices.insert(inv_name, Matrix::new(inv_data));
+    let inv = matrix.inverse();
+    world.matrices.insert(inv_name, inv);
 }
 
 #[when(expr = "{word} ← {word} * {word}")]
@@ -144,12 +144,12 @@ fn when_transform(world: &mut TransformationWorld, result_name: String, m_name: 
     let m1 = world.matrices.get(&m_name).expect("Matrix not found");
     if let Some(m2) = world.matrices.get(&t_name) {
         // matrix * matrix
-        let result = Matrix::new(m1.data * m2.data);
+        let result = m1 * m2;
         world.matrices.insert(result_name, result);
     } else {
         // matrix * tuple
         let tuple = world.tuples.get(&t_name).expect("Tuple not found");
-        let result = m1.data * tuple;
+        let result = m1 * tuple;
         world.tuples.insert(result_name, result);
     }
 }
@@ -159,7 +159,7 @@ fn when_chain_transform(world: &mut TransformationWorld, res_name: String, m1_na
     let m1 = world.matrices.get(&m1_name).expect("Matrix not found");
     let m2 = world.matrices.get(&m2_name).expect("Matrix not found");
     let m3 = world.matrices.get(&m3_name).expect("Matrix not found");
-    let result_matrix = Matrix::new(m1.data * m2.data * m3.data);
+    let result_matrix = m1 * m2 * m3;
     world.matrices.insert(res_name, result_matrix);
 }
 
