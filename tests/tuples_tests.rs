@@ -50,18 +50,20 @@ fn check_tuple_is_not_type(world: &mut TupleWorld, name: String, object_type: St
     assert!(!relative_eq!(w, expected));
 }
 
-#[given(expr = "{word} ← {word}\\({float}, {float}, {float}\\)")]
-fn assign_point_or_vector(world: &mut TupleWorld, name: String, type_name: String, x: f64, y: f64, z: f64) {
+#[given(expr = "{word} ← {word}\\({word}, {word}, {word}\\)")]
+fn assign_point_or_vector(world: &mut TupleWorld, name: String, type_name: String, x: String, y: String, z: String) {
+    let xv = parse_expr(&x);
+    let yv = parse_expr(&y);
+    let zv = parse_expr(&z);
     let tuple = match type_name.as_str() {
-        "point" => Vector4::new(x, y, z, 1.0),
-        "vector" => Vector4::new(x, y, z, 0.0),
-        "color" => Vector4::new(x, y, z, 0.0),
+        "point" => Vector4::new(xv, yv, zv, 1.0),
+        "vector" => Vector4::new(xv, yv, zv, 0.0),
+        "color" => Vector4::new(xv, yv, zv, 0.0),
         _ => panic!("Unknown constructor: {}", type_name),
     };
     world.tuples.insert(name, tuple);
 }
 
-// we cant use {word} because that will match -{word} as well
 #[then(regex = r"^(\w+) = tuple\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
 fn check_tuple_equality(world: &mut TupleWorld, name: String, x: f64, y: f64, z: f64, w: f64) {
     let tuple = world.tuples.get(&name).expect("Tuple not found");
@@ -165,6 +167,29 @@ fn check_color_multiplication(world: &mut TupleWorld, a: String, b: String, r: f
     let expected = Vector4::new(r, g, bl, 0.0);
     assert_relative_eq!(result, expected);
 }
+
+#[then(regex = r"^(\w+) = (?:vector|color)\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
+fn check_vector_result(world: &mut TupleWorld, name: String, x: f64, y: f64, z: f64) {
+    let tuple = world.tuples.get(&name).expect("Tuple not found");
+    let expected = Vector4::new(x, y, z, 0.0);
+    assert_relative_eq!(tuple, &expected, epsilon = 1e-4);
+}
+
+mod common;
+use common::math_parser::parse_expr;
+
+
+#[when(expr = "{word} ← reflect\\({word}, {word}\\)")]
+fn when_reflect(world: &mut TupleWorld, r_name: String, v_name: String, n_name: String) {
+    let v = world.tuples.get(&v_name).expect("v not found");
+    let n = world.tuples.get(&n_name).expect("n not found");
+    let v3 = Vector3::new(v.x, v.y, v.z);
+    let n3 = Vector3::new(n.x, n.y, n.z);
+    let r3 = ray_tracer_tdd::phong_shader::PhongShader::reflect(v3, n3);
+    world.tuples.insert(r_name, Vector4::new(r3.x, r3.y, r3.z, 0.0));
+}
+
+
 
 fn main() {
     futures::executor::block_on(TupleWorld::run(

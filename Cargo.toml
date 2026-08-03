@@ -37,3 +37,11 @@ harness = false
 [[test]]
 name = "intersections_tests"
 harness = false
+
+[[test]]
+name = "lights_tests"
+harness = false
+
+[[test]]
+name = "materials_tests"
+harness = false

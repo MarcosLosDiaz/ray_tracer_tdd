@@ -26,6 +26,11 @@ impl Matrix {
         self.try_inverse().expect("Matrix is not invertible")
     }
 
+    pub fn transpose(&self) -> Self {
+        Self::new(self.data.transpose())
+    }
+
+
     /// Returns the multiplication of the current matrix by a translation matrix with x, y, z values.
     ///
     /// Translation Matrix:

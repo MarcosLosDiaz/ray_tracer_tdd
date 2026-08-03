@@ -84,7 +84,7 @@ fn given_ray_inline(world: &mut IntersectionsWorld, name: String,
     world.rays.insert(name, Ray::new(origin, direction));
 }
 
-#[then(regex = r"^([a-zA-Z0-9_]+)\.t = ([-+]?\d*\.?\d+)$")]
+#[then(regex = r"^([a-zA-Z0-9_]+)\.t = ([-+]?\d+(?:\.\d+)?)$")]
 fn then_intersection_t(world: &mut IntersectionsWorld, name: String, expected: f64) {
     let (t, _obj) = world.intersections.get(&name).expect("intersection not found");
     assert_relative_eq!(*t, expected);
